@@ -36,16 +36,35 @@ var sLon = 0;
 var eLat = 0;
 var eLon = 0;
 
-var ration = {a: 1, minA: 1, maxA: 5,
-	      b: 1, minB: 1, maxB: 7,
-	      c: 1, minC: 1, maxC: 12,
-	      num: 1,minNum: 1,maxNum: 420,
+var ration = {a: 1, minA: 1, maxA: 10,
+	      b: 1, minB: 1, maxB: 14,
+	      c: 1, minC: 1, maxC: 24,
+	      num: 1,minNum: 1,maxNum: 0,
 	      incBtn: function(){ incRation(); },
 	      decBtn: function(){ decRation(); }
 	     };
 
+ration.maxNum = calcMaxNum();
+
 init();
 animate();
+
+function calcMaxNum()
+{
+    var r = {a: 0, b: 0, c: 0};
+    var nMin = Math.max(ration.maxA, ration.maxB, ration.maxC);
+    for (n = 1;; n++){
+	r.a += 1;
+	r.b += 1;
+	r.c += 1;
+	r.a %= ration.maxA;
+	r.b %= ration.maxB;
+	r.c %= ration.maxC;
+	if (r.a == r.b && r.b == r.c && n > nMin){
+	    return n;
+	}
+    }
+}
 
 // FUNCTIONS 		
 function init() 
@@ -317,7 +336,7 @@ function update()
     to = ration.b;
     sLat = (ration.a) * (360/ration.maxA);
     sLon = 90;    
-    eLat = 90;
+    eLat = (ration.b * 360/ration.maxB) + 90;
     eLon = (ration.c) * (360/ration.maxC);
     updatePointer(scene, from, to, sLat, sLon, eLat, eLon);
 
