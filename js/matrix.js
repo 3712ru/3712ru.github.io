@@ -13,9 +13,7 @@ var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 // custom global variables
 var cube;
-var maxLevels = 7;
 
-var projLevel = 8;
 var projPtrMat = new THREE.MeshBasicMaterial( { color: 0xff00ff, transparent: true, opacity: 0.8 } );
 
 var unitRad = 1.0;
@@ -86,18 +84,6 @@ function init()
     // GUI
     gui = new dat.GUI();
     gui.width = 200;
-    parameters = 
-	{
-            a: 1, b: 1, c: 1,
-	    rn: 1,
-            color: "#ff0000", // color (change "#" to "0x")
-            opacity: 1, 
-            visible: true,
-            material: "Phong",
-	    incBtn: function(){ incRation(); parameters.rn = ration.num; },
-	    decBtn: function(){ decRation(); parameters.rn = ration.num; },
-            reset: function() { resetState() }
-	};
     var folder1 = gui.addFolder('Params');
     var rationA = folder1.add( ration, 'a' ).min(ration.minA).max(ration.maxA).step(1).listen();
     var rationB = folder1.add( ration, 'b' ).min(ration.minB).max(ration.maxB).step(1).listen();
@@ -137,7 +123,7 @@ function init()
 
     mkPointer(pointerName);
 
-    for (i = 0; i < 840; i++){
+    for (i = 0; i < ration.maxNum; i++){
 	var s = new THREE.Mesh(sphereGeom, green);
 	s.visible = false;
 	matrix.push(s);
@@ -201,7 +187,7 @@ function updatePointer(scene, from, to, sLat, sLon, eLat, eLon)
     ptr.geometry.verticesNeedUpdate = true;
 
 
-    var erp = unitRad*projLevel;
+    var erp = unitRad*(ration.maxB+1);
     var evp = pointOnSphereG(erp, eLat, eLon).sub(sv);
     var projSphere =  new THREE.Sphere( new THREE.Vector3(0,0,0), (erp + 0.00001) );
     var ivp = ray.intersectSphere(projSphere);
@@ -224,10 +210,10 @@ function updatePointer(scene, from, to, sLat, sLon, eLat, eLon)
 
 function mkLevels(scene)
 {
-    var sphereGeom =  new THREE.SphereGeometry( unitRad*8, 24, 24 );
+    var sphereGeom =  new THREE.SphereGeometry( unitRad*(ration.maxB+1), 24, 24 );
     scene.add(new THREE.Mesh( sphereGeom, blue));
-    for(i = 0; i < maxLevels; i++){
-	var torusGeom =  new THREE.TorusGeometry( unitRad*(i+1), unitRad/100, 5, 5 );
+    for(i = 0; i < ration.maxB; i++){
+	var torusGeom =  new THREE.TorusGeometry( unitRad*(i+1), unitRad/100, 5, ration.maxA );
 	var lvlSphere = new THREE.Mesh( torusGeom.clone(), red );
 	scene.add(lvlSphere);
     }
@@ -235,10 +221,17 @@ function mkLevels(scene)
 
 function mkAxis(scene)
 {
-    var xAxis = new THREE.Mesh( torusGeom.clone(), red );
-    var yAxis = new THREE.Mesh( torusGeom.clone(), green );
-    var zAxis = new THREE.Mesh( torusGeom.clone(), blue );
+    var xTorusGeom =  new THREE.TorusGeometry( unitRad, unitRad/100, 12, ration.maxA );
+    var yTorusGeom =  new THREE.TorusGeometry( unitRad, unitRad/100, 24, ration.maxB );
+    var zTorusGeom =  new THREE.TorusGeometry( unitRad, unitRad/100, 24, ration.maxC );
+    var xMat = new THREE.MeshBasicMaterial( { color: 0xffa0a0, transparent: true, opacity: 0.5 } );;
+    var yMat = new THREE.MeshBasicMaterial( { color: 0xa0ffa0, transparent: true, opacity: 0.5 } );;
+    var zMat = new THREE.MeshBasicMaterial( { color: 0xa0a0ff, transparent: true, opacity: 0.5 } );;
+    var xAxis = new THREE.Mesh( xTorusGeom.clone(), xMat );
+    var yAxis = new THREE.Mesh( yTorusGeom.clone(), yMat );
+    var zAxis = new THREE.Mesh( zTorusGeom.clone(), zMat );
 
+//    xAxis.rotation.z = a2r(27.5);
     yAxis.rotation.x = Math.PI / 2;
     zAxis.rotation.y = Math.PI / 2;
     scene.add( xAxis );
