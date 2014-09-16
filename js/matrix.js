@@ -36,9 +36,9 @@ var sLon = 0;
 var eLat = 0;
 var eLon = 0;
 
-var ration = {a: 1, minA: 1, maxA: 10,
-	      b: 1, minB: 1, maxB: 14,
-	      c: 1, minC: 1, maxC: 24,
+var ration = {a: 1, minA: 1, maxA: 5,
+	      b: 1, minB: 1, maxB: 7,
+	      c: 1, minC: 1, maxC: 12,
 	      num: 1,minNum: 1,maxNum: 0,
 	      incBtn: function(){ incRation(); },
 	      decBtn: function(){ decRation(); }
@@ -217,6 +217,9 @@ function updatePointer(scene, from, to, sLat, sLon, eLat, eLon)
     matrix[ration.num-1].position.x = ivp.x;
     matrix[ration.num-1].position.y = ivp.y;
     matrix[ration.num-1].position.z = ivp.z;
+//    matrix[ration.num-1].position.x = iv.x;
+//    matrix[ration.num-1].position.y = iv.y;
+//    matrix[ration.num-1].position.z = iv.z;
 
     matrix.forEach(function(s, i){
 	if (i < ration.num){
@@ -332,7 +335,7 @@ function update()
 	}
     }
     
-    from = ration.b;
+    from = ration.maxB;
     to = ration.b;
     sLat = (ration.a) * (360/ration.maxA);
     sLon = 90;    
