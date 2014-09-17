@@ -74,13 +74,15 @@ function init()
     // CAMERA
     var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
     var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-    camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-    //camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -20, 20 );
-    // camera.updateProjectionMatrix();
+    //camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+    var oZoom = 40;
+    camera = new THREE.OrthographicCamera( (window.innerWidth / - 2) /oZoom, (window.innerWidth / 2) /oZoom, (window.innerHeight / 2) /oZoom, (window.innerHeight / - 2) /oZoom, -50, 50 );
+    //camera = new THREE.OrthographicCamera( -10, 10, -10, 10, -10, 10 );
+    //camera.updateProjectionMatrix();
     scene.add(camera);
     //	camera.position.set(0,150,400);
-    camera.position.set(0,-15,10);
-    camera.lookAt(scene.position);	
+    camera.position.set(0,1,0);
+//    camera.lookAt(scene.position);	
     // RENDERER
     if ( Detector.webgl )
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
@@ -130,7 +132,7 @@ function init()
     var skyBoxGeometry = new THREE.BoxGeometry( 10000, 10000, 10000 );
     var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x0d0d0d, side: THREE.BackSide } );
     var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-    scene.add(skyBox);
+    //scene.add(skyBox);
     //scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
     
     ////////////
@@ -144,6 +146,7 @@ function init()
 
     for (i = 0; i < ration.maxNum; i++){
 	var s = new THREE.Mesh(sphereGeom, green);
+	//var s = new THREE.Mesh(torusGeom, green);
 	s.visible = false;
 	matrix.push(s);
 	scene.add(s);
@@ -196,27 +199,30 @@ function updatePointer(scene, from, to, sLat, sLon, eLat, eLon)
     var sr = unitRad*(from);
     var er = unitRad*(to);
     var sv = pointOnSphereG(sr, sLat, sLon);
-    var ev = pointOnSphereG(er, eLat, eLon).sub(sv); 
-    var sphere =  new THREE.Sphere( new THREE.Vector3(0,0,0), (unitRad*to + 0.00001) );
-    var ray = new THREE.Ray( sv, ev.normalize());
+    var ev = pointOnSphereG(er, eLat, eLon);//.sub(sv); 
+    var sphere =  new THREE.Sphere( new THREE.Vector3(0,0,0), sr);//(unitRad*to + 0.00001) );
+    var ev1 = ev.clone().sub(sv).normalize();
+    var ray = new THREE.Ray( sv, ev1);//ev.normalize());
     var iv = ray.intersectSphere(sphere);
     var ptr = scene.getObjectByName(pointerName);
     ptr.geometry.vertices[0] = sv;
-    ptr.geometry.vertices[1] = iv;
+    ptr.geometry.vertices[1] = ev;
     ptr.geometry.verticesNeedUpdate = true;
 
 
     var erp = unitRad*(ration.maxB+1);
-    var evp = pointOnSphereG(erp, eLat, eLon).sub(sv);
+//    var evp = pointOnSphereG(erp, eLat, eLon);//.sub(ev);
     var projSphere =  new THREE.Sphere( new THREE.Vector3(0,0,0), (erp + 0.00001) );
     var ivp = ray.intersectSphere(projSphere);
     var projPtr = scene.getObjectByName(projPointerName);
-    projPtr.geometry.vertices[0] = iv;
+    projPtr.geometry.vertices[0] = ev;
     projPtr.geometry.vertices[1] = ivp;
     projPtr.geometry.verticesNeedUpdate = true;
+
     matrix[ration.num-1].position.x = ivp.x;
     matrix[ration.num-1].position.y = ivp.y;
     matrix[ration.num-1].position.z = ivp.z;
+
 //    matrix[ration.num-1].position.x = iv.x;
 //    matrix[ration.num-1].position.y = iv.y;
 //    matrix[ration.num-1].position.z = iv.z;
@@ -233,7 +239,7 @@ function updatePointer(scene, from, to, sLat, sLon, eLat, eLon)
 function mkLevels(scene)
 {
     var sphereGeom =  new THREE.SphereGeometry( unitRad*(ration.maxB+1), 24, 24 );
-    scene.add(new THREE.Mesh( sphereGeom, blue));
+//    scene.add(new THREE.Mesh( sphereGeom, blue));
     for(i = 0; i < ration.maxB; i++){
 	var torusGeom =  new THREE.TorusGeometry( unitRad*(i+1), unitRad/100, 5, ration.maxA );
 	var lvlSphere = new THREE.Mesh( torusGeom.clone(), red );
@@ -334,13 +340,22 @@ function update()
 	    decRation();
 	}
     }
+    if ( keyboard.pressed("q") ){
+	camera.position.set(1,0,0);
+    }
+    if ( keyboard.pressed("w") ){
+	camera.position.set(0,1,0);
+    }
+    if ( keyboard.pressed("e") ){
+	camera.position.set(0,0,1);
+    }
     
-    from = ration.maxB;
+    from = ration.maxB; //(ration.num % 2 == 0) ? ration.maxB : 5;
     to = ration.b;
-    sLat = (ration.a) * (360/ration.maxA);
-    sLon = 90;    
-    eLat = (ration.b * 360/ration.maxB) + 90;
-    eLon = (ration.c) * (360/ration.maxC);
+    sLat = (ration.a) * (360/ration.maxA) + 90;
+    sLon = 90;// + (ration.a) * (360/ration.maxA);    
+    eLat = 0;//(ration.b * 360/ration.maxB) + 90;
+    eLon = (ration.c - 1) * (360/ration.maxC);
     updatePointer(scene, from, to, sLat, sLon, eLat, eLon);
 
     controls.update();
