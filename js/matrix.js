@@ -29,9 +29,9 @@ var eLat = 0;
 var eLon = 0;
 
 var ration = {
-    a: 1, minA: 1, maxA: 5,
+    a: 1, minA: 1, maxA: 10,
     b: 1, minB: 1, maxB: 7,
-    c: 1, minC: 1, maxC: 12,
+    c: 1, minC: 1, maxC: 24,
     num: 1,minNum: 1,maxNum: 0
 };
 
@@ -148,22 +148,51 @@ function initLevels()
 function mkAxis(scene)
 {
     var xMat = new THREE.LineBasicMaterial( { color: 0xffa0a0, transparent: true, opacity: 0.5 } );;
+    var yMat = new THREE.LineBasicMaterial( { color: 0xa0ffa0, transparent: true, opacity: 0.5 } );;
 
     var l7g = new THREE.Geometry();
     l7g.vertices.push( new THREE.Vector3(0,0,0));
 
     levels.forEach(function(n){
-	var l5 = new THREE.CircleGeometry(n, ration.maxA);
+	var l5 = new THREE.CircleGeometry(n, ration.maxA/2);
 	l5.vertices.shift();
 	var l5v = l5.vertices.slice(0);
 	ii = 0;
+
+	var phi = (Math.sqrt(5) - 1) / 2;
+	var r = (1 - phi) * n;
+	var l5i = new THREE.CircleGeometry(r, ration.maxA/2);
+	l5i.vertices.shift();
+	l5i.vertices.forEach(function(v){
+	    var ang = ((2*Math.PI) / 10) * 11;
+	    var axis = new THREE.Vector3(0, 0, 1);
+	    v.applyAxisAngle(axis, ang);
+	});
+//	var obj1 = new THREE.Line(l5i, yMat, THREE.LineStrip);
+//	scene.add(obj1);
+/*
 	for (i = 0; i < ration.maxA; i++){
 	    l5.vertices[i] = l5v[ii % ration.maxA];
 	    ii += 2;
 	}
+*/	
+	var l5g = new THREE.Geometry();
+	var ii = 0;
+	var iii = 0;
+	for (i = 0; i < ration.maxA; i++){
+	    var v;
+	    if ((i % 2) == 0){
+		v = l5.vertices[iii];
+		iii++;
+	    }else{
+		v = l5i.vertices[ii];
+		ii++;
+	    }
+	    l5g.vertices.push(v);
+	}
 
-	var obj = new THREE.Line(l5, xMat, THREE.LineStrip);
-	obj.name = "l5_" + n
+	var obj = new THREE.Line(l5g, xMat, THREE.LineStrip);
+	obj.name = "l5_" + n;
 	scene.add(obj);
 
 	// 7th
@@ -173,6 +202,8 @@ function mkAxis(scene)
     var obj = new THREE.Line(l7g, xMat, THREE.LineStrip);
     obj.name = "l7";
     scene.add(obj);
+    // 5th internal
+
 }
 
 function a2r(grad)
@@ -333,7 +364,7 @@ function update()
     }
     if ( keyboard.pressed("e") ) 
     {
-	camera.position.set(0,0,-20);
+	camera.position.set(0,0,20);
     }
    
     updateAxis(scene);
